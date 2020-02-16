@@ -25,6 +25,7 @@ struct Joueur{
 	int intelligence;
 	item inventaire[MAX_CAPACITE];
 	int tailleInventaire;
+	int inventaireMax;
 	bool isDrogued;
 	};
 typedef struct Joueur joueur;
@@ -55,17 +56,38 @@ void afficherInventaire(joueur joueur) {
 	}
 }
 
+void ajouterObjet(joueur* joueur, item item) {
+	if ((*joueur).tailleInventaire < (*joueur).inventaireMax) {
+		(*joueur).inventaire[(*joueur).tailleInventaire] = item;
+		(*joueur).tailleInventaire++;
+	}
+}
+
+void enleverObjet(joueur* joueur, item item) {
+	bool removed = false;
+		for (int i=0; i<(*joueur).tailleInventaire; i++) {
+			if (removed) {
+				(*joueur).inventaire[i-1] = (*joueur).inventaire[i];
+			} else if ( strcmp((*joueur).inventaire[i].nom, item.nom) == 0 ) {
+				removed = true;
+			}
+		}
+		if (removed) {
+			(*joueur).tailleInventaire--;
+		}
+}
+
 int main(){
   color(15,0);
 	int choixAction;
   int choixRecup;
-	joueur noelie={"Noelie",50,50,60,5,2,3,3,3,{{"Vetement Dechire","Vetement en lambeaux n'offrant aucune defense"},{"Morceau de Metal","Petit morceau de metal coupant"}},2,false};
+	joueur noelie={"Noelie",50,50,60,5,2,3,3,3,{{"Vetement Dechire","Vetement en lambeaux n'offrant aucune defense"},{"Morceau de Metal","Petit morceau de metal coupant"}},2,10,false};
 	lieu chapelle={1, "Chapelle en Ruine", "Chapelle servant de couverture a une operation de trafic de drogue de grande envergure"};
 	lieu egout={2, "Egout Obscur", "Egout servant d'entrepot de stockage pour la drogue, sert aussi de lien entre chaque batiment"};
 	lieu laboratoire={3, "Laboratoire", "Laboratoire servant d'usine a creation de Mule"};
 
 		reveil(egout);
-	printf("\nVous etes nu et dans le noir, vous ramassez ce que vous trouvez dans la piece et vous vous en equipez\n");
+		printf("\nVous etes nu et dans le noir, vous ramassez ce que vous trouvez dans la piece et vous vous en equipez\n");
 		afficherInventaire(noelie);
 
 		do {
@@ -84,51 +106,54 @@ int main(){
             switch (choixRecup) {
               //objet dans inventaire
               case 1:
-
                 color (12,0);
-                printf("Vous obtenez combinaison de laborantin [defense + 1]\n");
+                printf("Vous obtenez combinaison de laborantin [defense + 1]\n\n");
+								item blouse = {"Combinaison de Laborantin", "Simple Combinaison de Laborantin offrant peu de defense"};
+								ajouterObjet(&noelie, blouse);
+								color(15,0);
+								afficherInventaire(noelie);
                 noelie.def=noelie.def+1;
                 choixAction=0;
               break;
               //objet non récupéré
               case 2:
-                printf("  \n");
+                printf("\n");
                 choixAction=0;
               break;
             }
             color (15,0);
-            printf("Vous avez fait trop de bruit ! Les gardes qui discutaient non loin vous ont repere !\n");
+            printf("\nVous avez fait trop de bruit ! Les gardes qui discutaient non loin vous ont repere !\n");
           }
             while(choixAction != 0);
             choixAction = -1;
 					break;
 				// Ecouter la conversation
 				case 2:
-				do{
-          printf("-T'as entendu ca ? Apparament ils vont augmenter le taux de CTH dans l'hosmozine ! Les mules vont avoir du mal survivre pouahaha\n");
-          sleep (4);
-          printf("-Je trouve pas ca tres drole, ils pourraient etre plus professionels avec les mules, c'est pas comme s'ils disposaient des plus grands chirurgiens du monde\n");
-          sleep(4);
-          printf("-Rhoo ca va qu'est ce qu'on s'en fiche de savoir si ces gens meurent ou pas, dans tous les cas leurs vies etaient foutues autant qu'ils servent a quelque chose !\n");
-          sleep(4);
-          printf("-Tu me saoules, je vais aller me griller une cigarrette pour plus t'entendre dire des conneries\n");
-          sleep(4);
-          printf("-Tu feras gaffe, la sortie B6 est en maintenance il y a que la sortie E4 qui est accessible depuis ici : continue tout droit et tu tournes a la deuxieme a gauche\n");
-          sleep(4);
-          printf("-Ca marche moi je retourne en salle info inspecter les cameras de surveillance\n");
-          sleep(2);
+					do{
+	          printf("-T'as entendu ca ? Apparament ils vont augmenter le taux de CTH dans l'hosmozine !\nLes mules vont avoir du mal survivre pouahaha\n\n");
+	          sleep (4);
+	          printf("-Je trouve pas ca tres drole, ils pourraient etre plus professionels avec les mules,\nc'est pas comme s'ils disposaient des plus grands chirurgiens du monde\n\n");
+	          sleep(4);
+	          printf("-Rhoo ca va qu'est ce qu'on s'en fiche de savoir si ces gens meurent ou pas,\ndans tous les cas leurs vies etaient foutues autant qu'ils servent a quelque chose !\n\n");
+	          sleep(4);
+	          printf("-Tu me saoules, je vais aller me griller une cigarrette pour plus t'entendre dire des conneries\n\n");
+	          sleep(4);
+	          printf("-Tu feras gaffe, la sortie B6 est en maintenance, il n'y a que la sortie E4 qui est accessible depuis ici :\n continue tout droit et tu tournes a la deuxieme a gauche\n\n");
+	          sleep(4);
+	          printf("-Ca marche moi je retourne en salle info inspecter les cameras de surveillance\n");
+	          sleep(2);
 
-          printf("Vous decidez de suivre le garde jusqu'a la sortie mais la porte se referme devant vous, vous ne parvenez pas a vous echaper\n");
-          printf("Vous retournez sur vos pas et trouvez la salle informatique dont parlait l'autre garde\n Celui ci se trouve assis devant les écrans de surveillance avec un casque audio sur la tete\n");
+	          printf("Vous decidez de suivre le garde jusqu'a la sortie mais la porte se referme devant vous,\n vous ne parvenez pas a vous echaper\n\n");
+	          printf("Vous retournez sur vos pas et trouvez la salle informatique dont parlait l'autre garde\n Celui ci se trouve assis devant les ecrans de surveillance avec un casque audio sur la tete\n\n");
 
-          printf("Que voulez vous faire ? Assomer le garde (1) Fouiller discrètement la salle (2)\n");
+	          printf("Que voulez vous faire ? Assomer le garde (1) Fouiller discretement la salle (2)\n");
           choixAction=0;
-
           }
 				 while (choixAction != 0);
 				choixAction = -1;
 				default:;
 			}
+			break;
 		} while (choixAction != 0);
   return 0;
 }
