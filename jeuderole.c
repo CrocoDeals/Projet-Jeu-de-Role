@@ -42,8 +42,6 @@ void color(int t,int f){
   SetConsoleTextAttribute(H,f*16+t);
 }
 
-
-
 void reveil(lieu lieuReveil){
 	//color(1,15);
 	printf("\nVous vous reveillez dans le lieu : %s\n", lieuReveil.nom);
@@ -77,11 +75,21 @@ void enleverObjet(joueur* joueur, item item) {
 		}
 }
 
+void looterUnObjet(joueur* heroine, joueur* ennemiMort, item item) {
+	ajouterObjet(heroine, item);
+	enleverObjet(ennemiMort, item);
+}
+
+void ajouterObjet(joueur*, item);
+void enleverObjet(joueur*, item);
+void looterUnObjet(joueur*, joueur*, item);
+
 int main(){
   color(15,0);
 	int choixAction;
   int choixRecup;
 	joueur noelie={"Noelie",50,50,60,5,2,3,3,3,{{"Vetement Dechire","Vetement en lambeaux n'offrant aucune defense"},{"Morceau de Metal","Petit morceau de metal coupant"}},2,10,false};
+	joueur garde={"XV-95",30,30,30,10,2,4,2,3,{{"Casque de Garde","Casque de la garde, offre une protection a la tete"},{"Baton","Matraque de garde"}},2,10,false};
 	lieu chapelle={1, "Chapelle en Ruine", "Chapelle servant de couverture a une operation de trafic de drogue de grande envergure"};
 	lieu egout={2, "Egout Obscur", "Egout servant d'entrepot de stockage pour la drogue, sert aussi de lien entre chaque batiment"};
 	lieu laboratoire={3, "Laboratoire", "Laboratoire servant d'usine a creation de Mule"};
@@ -89,8 +97,13 @@ int main(){
 		reveil(egout);
 		printf("\nVous etes nu et dans le noir, vous ramassez ce que vous trouvez dans la piece et vous vous en equipez\n");
 		afficherInventaire(noelie);
+		afficherInventaire(garde);
+		scanf("%d", &choixAction);
+		looterUnObjet(&noelie, &garde, garde.inventaire[choixAction-1]);
+		afficherInventaire(noelie);
+		afficherInventaire(garde);
 
-		do {
+	/*	do {
 		printf("\nVous avancez vers la lumiere et vous vous retrouvez dans une grande piece.\nPlusieurs caisses de stockage se trouve a droite.\nVous entendez des voix dans le couloir de gauche.\nQue faites-vous ? Se cacher et fouiller les caisses (1)  Ecouter la conversation (2)\n");
 		//color(15,0);
 			scanf("%d", &choixAction);
@@ -130,7 +143,7 @@ int main(){
 				// Ecouter la conversation
 				case 2:
 					do{
-	          printf("-T'as entendu ca ? Apparament ils vont augmenter le taux de CTH dans l'hosmozine !\nLes mules vont avoir du mal survivre pouahaha\n\n");
+	          printf("-T'as entendu ca ? Apparament ils vont augmenter le taux de CTH dans l' !\nLes mules vont avoir du mal survivre pouahaha\n\n");
 	          sleep (4);
 	          printf("-Je trouve pas ca tres drole, ils pourraient etre plus professionels avec les mules,\nc'est pas comme s'ils disposaient des plus grands chirurgiens du monde\n\n");
 	          sleep(4);
@@ -154,6 +167,6 @@ int main(){
 				default:;
 			}
 			break;
-		} while (choixAction != 0);
+} while (choixAction != 0); */
   return 0;
 }
