@@ -7,6 +7,10 @@
 
 #define MAX_CAPACITE 10
 
+//déclaration de variable
+
+
+//déclaration de structures
 struct Item{
 	char* nom;
 	char* description;
@@ -30,6 +34,7 @@ struct Joueur{
 	};
 typedef struct Joueur joueur;
 
+
 struct Lieu{
 	int id;
 	char* nom;
@@ -44,6 +49,8 @@ struct Password{
 
 typedef struct Password password;
 
+
+//déclaration de fonctions
 void color(int t,int f){
   HANDLE H=GetStdHandle(STD_OUTPUT_HANDLE);
   SetConsoleTextAttribute(H,f*16+t);
@@ -84,10 +91,15 @@ void enleverObjet(joueur* joueur, item item) {
 		}
 }
 
+//début main
 int main(){
+	//fonction aléatoire
+	srand(time(NULL));
+	//début scénario
   color(15,0);
 	int choixAction;
   int choixRecup;
+	joueur garde={"XV-95",30,30,30,10,2,4,2,3,{{"Casque de Garde","Casque de la garde, offre une protection a la tete"},{"Baton","Matraque de garde"}},2,10,false};
 	joueur noelie={"Noelie",50,50,60,5,2,3,3,3,{{"Vetement Dechire","Vetement en lambeaux n'offrant aucune defense"},{"Morceau de Metal","Petit morceau de metal coupant"}},2,10,false};
 	lieu chapelle={1, "Chapelle en Ruine", "Chapelle servant de couverture a une operation de trafic de drogue de grande envergure"};
 	lieu egout={2, "Egout Obscur", "Egout servant d'entrepot de stockage pour la drogue, sert aussi de lien entre chaque batiment"};
@@ -131,6 +143,46 @@ int main(){
             }
             color (15,0);
             printf("\nVous avez fait trop de bruit ! Les gardes qui discutaient non loin vous ont repere !\n");
+						printf("Oh toi ! Qu'est ce que tu fais la ?! T'as rien a faire ici retourne dans ta cellule pauvre mule !\n");
+						color(10,0);
+						printf("Un combat est declare entre %s et %s\n", noelie.nom, garde.nom);
+						color (15,0);
+						printf("Que voulez vous faire ? Donner un coup de poing (1) Donner un coup de pied (2) Couper avec le bout de metal (3)\n");
+						int choixAttaque;
+						int choixMob;
+						scanf("%d",&choixAttaque);
+						choixMob=rand()%2+1;
+						if (garde.pv !=0) {
+								switch (choixAttaque) {
+										case 1: //poing
+											printf("Vous placez une droite !\n");
+											printf("%s prend 5 degats\n", garde.nom );
+											garde.pv = garde.pv-5;
+										break;
+										case 2: //pied
+											printf("Vous jetez votre jambe dans les airs en direction de la tete du garde\n");
+											printf("%s prend 8 degats\n",garde.nom);
+											garde.pv = garde.pv-8;
+										break;
+										case 3: //metal
+											printf("Vous serrez le bout de metal entre vos doigts et infligez une coupure a %s\n",garde.nom);
+											printf("%s prend 10 degats\n",garde.nom);
+											garde.pv = garde.pv-10;
+										break;
+									}
+								switch (choixMob) {
+										case 1: //attaque
+											printf("Le garde vous attaque et vous donne un coup de matraque\n");
+											printf("%s prend 3 degats\n",noelie.nom);
+											noelie.pv = noelie.pv-3;
+										break;
+										case 2: //defense
+											printf("Le garde se defend et place ses deux bras croises devant son visage\n");
+											printf("Votre attaque est moins efficace...\n");
+											garde.def = garde.def + 2;
+										break;
+								}
+						}
           }
             while(choixAction != 0);
             choixAction = -1;
