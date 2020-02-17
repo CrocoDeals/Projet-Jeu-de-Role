@@ -80,6 +80,22 @@ void looterUnObjet(joueur* heroine, joueur* ennemiMort, item item) {
 	enleverObjet(ennemiMort, item);
 }
 
+void verifierMort(joueur* ennemi){
+	if((*ennemi).pv <= 0){
+		printf("%s subit trop de degats et s'effondre\n", (*ennemi).nom);
+	} else if((*ennemi).pv >= 0){
+		printf("Ennemi : %d PV\n", (*ennemi).pv);
+	}
+}
+
+void infligerDegats(joueur* attaquant, joueur* defenseur){
+	int degatActuels = 0;
+	printf("\n%s attaque %s\n",(*attaquant).nom, (*defenseur).nom);
+	degatActuels = (*attaquant).att/(*defenseur).def;
+	(*defenseur).pv = (*defenseur).pv - degatActuels;
+	printf("\n%s subit %d points de degats\n", (*defenseur).nom, degatActuels);
+}
+
 void ajouterObjet(joueur*, item);
 void enleverObjet(joueur*, item);
 void looterUnObjet(joueur*, joueur*, item);
@@ -90,18 +106,15 @@ int main(){
   int choixRecup;
 	joueur noelie={"Noelie",50,50,60,5,2,3,3,3,{{"Vetement Dechire","Vetement en lambeaux n'offrant aucune defense"},{"Morceau de Metal","Petit morceau de metal coupant"}},2,10,false};
 	joueur garde={"XV-95",30,30,30,10,2,4,2,3,{{"Casque de Garde","Casque de la garde, offre une protection a la tete"},{"Baton","Matraque de garde"}},2,10,false};
+	joueur garde2={"XV-96",3,30,30,10,2,4,2,3,{{"Casque de Garde","Casque de la garde, offre une protection a la tete"},{"Baton","Matraque de garde"}},2,10,false};
 	lieu chapelle={1, "Chapelle en Ruine", "Chapelle servant de couverture a une operation de trafic de drogue de grande envergure"};
 	lieu egout={2, "Egout Obscur", "Egout servant d'entrepot de stockage pour la drogue, sert aussi de lien entre chaque batiment"};
 	lieu laboratoire={3, "Laboratoire", "Laboratoire servant d'usine a creation de Mule"};
 
-		reveil(egout);
-		printf("\nVous etes nu et dans le noir, vous ramassez ce que vous trouvez dans la piece et vous vous en equipez\n");
-		afficherInventaire(noelie);
-		afficherInventaire(garde);
-		scanf("%d", &choixAction);
-		looterUnObjet(&noelie, &garde, garde.inventaire[choixAction-1]);
-		afficherInventaire(noelie);
-		afficherInventaire(garde);
+		infligerDegats(&noelie,&garde2);
+		infligerDegats(&garde2,&noelie);
+		infligerDegats(&noelie,&garde2);
+		verifierMort(&garde2);
 
 	/*	do {
 		printf("\nVous avancez vers la lumiere et vous vous retrouvez dans une grande piece.\nPlusieurs caisses de stockage se trouve a droite.\nVous entendez des voix dans le couloir de gauche.\nQue faites-vous ? Se cacher et fouiller les caisses (1)  Ecouter la conversation (2)\n");
