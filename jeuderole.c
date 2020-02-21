@@ -91,10 +91,22 @@ bool verifierMort(joueur* perso){
 	if((*perso).pv <= 0){
 		printf("\n%s subit trop de degats et s'effondre\n", (*perso).nom);
 		return true;
-	} else if((*perso).pv >= 0){
+	} else if((*perso).pv >= 0 && (*perso).nom == "XV-95"){
 		color(10,0);
 		printf("\n%s : %d PV\n", (*perso).nom, (*perso).pv);
 		color(15,0);
+		return false;
+	} else if((*perso).pv >= 0 && (*perso).nom == "XV-96"){
+		color(10,0);
+		printf("\n%s : %d PV\n", (*perso).nom, (*perso).pv);
+		color(15,0);
+		return false;
+	} else if((*perso).pv >= 0 && (*perso).nom == "Mule"){
+		color(10,0);
+		printf("\n%s : %d PV\n", (*perso).nom, (*perso).pv);
+		color(15,0);
+		return false;
+	} else {
 		return false;
 	}
 }
@@ -125,12 +137,66 @@ void attaqueGarde(joueur* heros, joueur* garde){
 	}
 }
 
+void attaqueMule(joueur* heros, joueur* mule){
+	srand(time(NULL));
+	int choixMob = rand()%4+1;
+	int nbCaisses = 3;
+	switch (choixMob) {
+			case 1: //attaque sautée
+				printf("La Mule se jette sur vous et vous frappe de plein fouet.\n");
+					infligerDegats(&(*mule),&(*heros),2);
+				break;
+			case 2: //attaque a distance
+					if(nbCaisses > 0){
+						printf("La Mule attrape une caisse et la lance sur vous !\n");
+						infligerDegats(&(*mule),&(*heros),4);
+						nbCaisses -= 1;
+					} else {
+						printf("La Mule cherche quelque chose a lancer mais ne trouve rien...\n");
+					}
+				break;
+				case 3: //Boost et Heal
+					if((*mule).incDrogue > 0){
+						printf("La Mule se plante le pic a glace dans son corps !\n");
+						printf("La Mule devient plus forte et ses blessures se ferme !\n");
+						(*mule).incDrogue = (*mule).incDrogue - 20;
+						(*mule).pv += 5;
+						(*mule).att += 2;
+					} else {
+						printf("Les sachets present dans le corps de la Mule sont vide ! Elle se blesse dans l'action\n");
+						(*mule).pv -= 5;
+					}
+					break;
+					case 4: //Concentration et Essouflement
+						if((*mule).incDrogue > 0){
+							printf("La Mule reprend son souffle et prepare son prochain coup !\n");
+							(*mule).att += 1;
+						} else {
+							printf("Ayant beaucoup de drogue dans son corps la Mule prend un moment pour respirer\n");
+							(*mule).pv -= 2;
+						}
+						break;
+					}
+}
+
+void boost(joueur* heros){
+	(*heros).pv += 10;
+	(*heros).att += 4;
+	(*heros).def += 1;
+	(*heros).force += 1;
+	(*heros).agilite += 1;
+	(*heros).intelligence += 1;
+	(*heros).incDrogue -= 10;
+}
+
 void ajouterObjet(joueur*, item);
 void enleverObjet(joueur*, item);
 void looterUnObjet(joueur*, joueur*, item);
 bool verifierMort(joueur*);
 void infligerDegats(joueur*,joueur*,int);
 void attaqueGarde(joueur*, joueur*);
+void attaqueMule(joueur*, joueur*);
+void boost(joueur*);
 
 int main(){
 	color(15,0);
@@ -141,10 +207,13 @@ int main(){
 	int choixPlan;
 	int choixGarde;
 	int choixChemin;
+	int choixAutel;
+	int choixFuite;
 	char choixPassword[40];
 	joueur garde={"XV-95",30,30,30,10,2,4,2,3,{{"Casque de Garde","Casque de la garde, offre une protection a la tete"},{"Baton","Matraque de garde"}},2,10,false};
 	joueur garde2={"XV-96",40,40,30,6,2,4,2,3,{{"Casque de Garde","Casque de la garde, offre une protection a la tete"},{"Baton","Matraque de garde"}},2,10,false};
 	joueur heros={"Noelie",50,50,60,5,2,3,3,3,{{"Vetement Dechire","Vetement en lambeaux n'offrant aucune defense"},{"Morceau de Metal","Petit morceau de metal coupant"}},2,10,false};
+	joueur muleEnragee={"Mule",150,150,40,10,1,3,3,3,{{"Vetement Dechire","Vetement en lambeaux n'offrant aucune defense"},{"Pic a Glace","Petit morceau de metal coupant"},{"Hosmozine","Sachet de drogue"}},3,10,false};
 	lieu chapelle={1, "Chapelle en Ruine", "Chapelle servant de couverture a une operation de trafic de drogue de grande envergure"};
 	lieu egout={2, "Egout Obscur", "Egout servant d'entrepot de stockage pour la drogue, sert aussi de lien entre chaque batiment"};
 	lieu laboratoire={3, "Laboratoire", "Laboratoire servant d'usine a creation de Mule"};
@@ -153,7 +222,8 @@ int main(){
 		reveil(egout);
 		printf("\nVous etes nu et dans le noir, vous ramassez ce que vous trouvez dans la piece et vous vous en equipez\n");
 		afficherInventaire(heros);
-
+		/*
+		// ACT 1
 		do {
 		printf("\nVous avancez vers la lumiere et vous vous retrouvez dans une grande piece.\nPlusieurs caisses de stockage se trouvent a droite.\nVous entendez des voix dans le couloir de gauche.\nQue faites-vous ? Se cacher et fouiller les caisses (1)  Ecouter la conversation (2)\n");
 		//color(15,0);
@@ -258,6 +328,393 @@ int main(){
 	          printf("Que voulez vous faire ? Assomer le garde (1) Fouiller discretement la salle (2)\n");
 						scanf("%d",&choixGarde);
 							switch (choixGarde) {
+								//Cas Assomer le garde
+								case 1:
+									printf("Vous ramassez une barre en fer sur le sol et assenez un violent coup sur la tete du garde\n\n celui ci vascille et tombe sur le sol\n\n");
+									printf("Voulez vous garder la barre en fer ? \n (1) Oui (2) Non\n");
+									scanf("%d", &choixRecup);
+										switch (choixRecup) {
+										//objet dans inventaire
+										case 1:
+												color (12,0);
+												printf("Vous obtenez barre en fer [attaque + 1]\n\n");
+												item barre = {"Barre en fer", "Long tuyau de metal qui peut servir d'arme redoutable"};
+												ajouterObjet(&heros, barre);
+												color(15,0);
+												afficherInventaire(heros);
+												heros.att=heros.att+1;
+												choixGarde=0;
+											break;
+										//objet non récupéré
+										case 2:
+								       printf("\n");
+								       choixGarde=0;
+								      break;
+										}
+											printf("Vous avez desormais acces a l'ordinateur que le garde utilisait\n\n");
+											printf("Il semblerait que l'ordinateur soit verouille par un mot de passe\n\n");
+											printf("Entrez un mot de passe.\n");
+												scanf("%39s", &choixPassword);
+												if(strcmp(choixPassword, motdepasse.nom) == 0){
+																			printf("mot de passe correct. acces autorise\n");
+																			sleep(2);
+																			printf("Vous ouvrez l'explorateur de fichier et commencez a chercher un plan du lieu\n\n");
+																			sleep(5);
+																			printf("Ca y est ! Vous avez trouve un plan de la zone qui vous indique ou est la sortie\n");
+																			printf("Voulez vous imprimer le plan ? Oui (1)  Non (2)\n");
+																			scanf("%d",&choixPlan);
+																				switch (choixPlan) {
+																					case 1:
+																					printf("L'imprimante commence son travail...\n");
+																					sleep (3);
+																					printf("Voulez vous recuperer le plan ? \n (1) Oui (2) Non\n");
+																					scanf("%d", &choixRecup);
+																						switch (choixRecup) {
+																							//objet dans inventaire
+																							case 1:
+																								color (12,0);
+																								printf("Vous obtenez plan des egouts []\n\n");
+																								item planEgout = {"Plan des Egouts", "Un plan complexe qui vous indique la direction a suivre"};
+																								ajouterObjet(&heros, planEgout);
+																								color(15,0);
+																								afficherInventaire(heros);
+																								choixAction=0;
+																								break;
+																							//objet non récupéré
+																							case 2:
+																								printf("\n");
+																								choixAction=0;
+																								break;
+																						}
+																					printf("Vous vous dirigez maintenant vers la sortie\n");
+																					sleep (5);
+																					printf("Vous avez trouve la sortie\n");
+																					choixAction=0;
+																						break;
+																					case 2:
+																						printf("Vous memorisez le plan en le structant pendant quelques minutes\n");
+																						sleep(3);
+																						printf("Vous sortez de la salle et vous vous dirigez vers la sortie\n");
+																						sleep(3);
+																						printf("Une bifurcation se presente devant vous quel chemin voulez vous prendre? Droite (1)  Gauche (2)\n");
+																						scanf("%d",&choixChemin);
+																							if (choixChemin==1) {
+																								printf("Vous decidez d'aller a droite\n");
+																								sleep (5);
+																								printf("Vous avez trouve la sortie ! \n");
+																							} else if (choixChemin==2){
+																								printf("Vous decidez d'aller a gauche\n");
+																								sleep (5);
+																								printf("Vous avez trouve la sortie ! \n");
+																							}
+																							choixAction=0;
+																						break;
+																				}
+												}else {
+													printf("mot de passe incorect. acces refuse\n");
+												}
+									break;
+									//Cas Fouiller Discretement
+								case 2:
+										printf("Vous observez les alentours de la salle et regardez ce qu'il peut y avoir au sol ou sur les etageres \n");
+										sleep (2);
+										printf("Vous trouvez un morceau de papier avec ecrit dessus un mot qui vous parait familier... hosmozine...\n");
+										sleep (2);
+										printf("Vous avez fait trop de bruit ! Le garde vous a repere !\n");
+											//debut combat
+												do{
+														printf("\nQue voulez vous faire ? Donner un coup de poing (1) Donner un coup de pied (2) Couper avec le bout de metal (3)\n");
+														scanf("%d",&choixAttaque);
+															switch(choixAttaque){
+																	case 1: //poing
+																		printf("\nVous placez une droite !");
+																			infligerDegats(&heros,&garde2,1);
+																				if(verifierMort(&garde2)==true){
+																					choixAttaque = 0;
+																					break;
+																				}
+																			attaqueGarde(&heros,&garde2);
+																				if(verifierMort(&heros)==true){
+																					choixAttaque = 0;
+																					break;
+																				}
+																		break;
+																	case 2: //pied
+																		printf("\nVous jetez votre jambe dans les airs en direction de la tete du garde\n");
+																		infligerDegats(&heros,&garde2,2);
+																			if(verifierMort(&garde2)==true){
+																				choixAttaque = 0;
+																				break;
+																			}
+																		attaqueGarde(&heros,&garde2);
+																			if(verifierMort(&garde2)==true){
+																				choixAttaque = 0;
+																				break;
+																			}
+																		break;
+																	case 3: //metal
+																		printf("\nVous serrez le bout de metal entre vos doigts et infligez une coupure a %s\n",garde2.nom);
+																		infligerDegats(&heros,&garde2,3);
+																			if(verifierMort(&garde2)==true){
+																				choixAttaque = 0;
+																				break;
+																			}
+																		attaqueGarde(&heros,&garde2);
+																			if(verifierMort(&garde2)==true){
+																				choixAttaque = 0;
+																				break;
+																			}
+																		break;
+																}
+													}while(choixAttaque != 0);
+													choixAction = -1;
+													//fin combat
+									break;
+								}
+								choixAction = 0;
+					break;
+				}
+			break;
+		}while(choixAction != 0);
+		choixAction = -1;
+		*/
+		//ACT 2
+		do {
+		printf("\nVous arrivez dans un petite piece.\nDevant vous se trouve une petite echelle menant vers une trappe au plafond.\nVous entendez des bruits derriere la trappe.\nQue faites-vous ?\nSortir discretement par la trappe (1)  Attendre que le bruit s'en aille avant de passer par la trappe (2)\n");
+		//color(15,0);
+			scanf("%d", &choixAction);
+			// Premier choix du Joueur
+			switch (choixAction) {
+				// Sortir Discretement
+				case 1:
+            printf("Vous utilisez l'echelle et montez jusqu'a la trappe que vous entrouvez legerement.\n\nDepuis la trappe, vous apercevez une grande piece ressemblant a une eglise.\nFace a vous de grandes caisses contenant surement de l'Hosmozine.\n\n");
+						sleep(4);
+						printf("Plusieurs gardes patrouillent la grande salle.\nVous vous glissez discretement derriere les grandes caisse\n");
+						printf("Pres des grandes caisses se trouve un ordinateur indiquant le plan de l'endroit\nVous y jetez un oeil.\n\n");
+						sleep(2);
+						color(1,0);
+						printf("Chargement...\n\n");
+						sleep(4);
+						printf("Vous vous situez dans la %s,\nune %s\n", chapelle.nom, chapelle.description);
+						sleep(6);
+						color(15,0);
+						printf("\n\nVous entendez la trappe s'ouvrir, quelqu'un vous a suivit.\nS'echappe de la trappe un jeune homme, habille comme vous, arme d'un pic a glace\n\n");
+						printf("Il se jete sur le seul garde de la salle.\nSans grand succes, il se retrouve plaque au sol par le garde.\n\n");
+						sleep(3);
+						printf("Vous le voyez se debattre, perdant son sang sur le sol en bois.\nIl attrape son pic a glace et se le plante dans le ventre !\n\n");
+						printf("Comme pris d'une rage, il souleve le garde et le lance contre le mur l'assomant !\nSes pupilles ont change de couleur, il se releve et se tourne vers vous.\n\n");
+						sleep(3);
+						printf("-Aah... Toi aussi... Toi aussi...\n\nIl se jete sur vous mais vous parvenez a devier la trajectoire de son attaque !\n\n");
+						sleep(3);
+						printf("Vous etes face a la mule enragee\n");
+						//Debut Combat Boss Phase 1
+						/*
+							//Debut combat
+								do{
+										printf("\nQue voulez vous faire ?\nDonner un coup de poing (1) Attaquer avec votre arme (2) Planter votre pic a glace dans votre ventre (3)\n");
+										scanf("%d",&choixAttaque);
+											switch(choixAttaque){
+													case 1: //Poing
+														printf("\nVous placez une droite puissante !\n");
+															infligerDegats(&heros,&muleEnragee,2);
+																if(verifierMort(&muleEnragee)==true){
+																	choixAttaque = 0;
+																	break;
+																}
+															attaqueMule(&heros,&muleEnragee);
+																if(verifierMort(&heros)==true){
+																	choixAttaque = 0;
+																	break;
+																}
+													  break;
+													case 2: //Arme
+														printf("\nVous prenez votre arme a deux mains et frappez la Mule\n");
+														infligerDegats(&heros,&muleEnragee,4);
+															if(verifierMort(&muleEnragee)==true){
+																choixAttaque = 0;
+																break;
+															}
+														attaqueMule(&heros,&muleEnragee);
+															if(verifierMort(&heros)==true){
+																choixAttaque = 0;
+																break;
+															}
+													  break;
+													case 3: //Pic à Glace
+														printf("\nVous utilisez le pic a glace sur votre ventre pour percer la poche de drogue\n");
+														boost(&heros);
+														heros.isDrogued = true;
+														attaqueMule(&heros,&muleEnragee);
+															if(verifierMort(&muleEnragee)==true){
+																choixAttaque = 0;
+																break;
+															}
+													  break;
+												}
+									}while(choixAttaque != 0);
+									choixAction = -1;
+							//Fin combat
+						*/
+						printf("\nLa Mule s'effondre au sol et le silence revient dans la chapelle\n");
+						printf("\nLa salle est vide, vous vous approchez de l'autel, sur ce dernier se touve un ordinateur.\n");
+						printf("\nQue voulez vous faire ?\nEntrer le Mot de Passe (1) Ouvrir en Guest (2)\n");
+						scanf("%d",&choixAutel);
+						switch (choixAutel) {
+							//Cas Password : Hosmozine
+							case 1:
+								printf("Vous entrez le mot de passe : Hosmozine\nLa session s'ouvre.\n\n");
+								printf("L'ordi s'eteint et une alarme se declenche !\nUne dizaine de gardes entrent dans la piece.\n\n");
+								printf("Vous prenez la fuite.");
+								color (12,0);
+								printf("Vous obtenez l'ordinateur portable []\n\n");
+								item ordinateur = {"Ordinateur", "Ordinateur contenant les plans"};
+								ajouterObjet(&heros, ordinateur);
+								color(15,0);
+							 	afficherInventaire(heros);
+						 		printf("\n\nVous partez en courant, vous ouvrez la porte arriere de la chapelle et vous vous engouffrez dans une ruelle\n");
+										printf("Vous avez desormais acces a l'ordinateur que le garde utilisait\n\n");
+										printf("Il semblerait que l'ordinateur soit verouille par un mot de passe\n\n");
+										printf("Entrez un mot de passe.\n");
+											scanf("%39s", &choixPassword);
+												if(strcmp(choixPassword, motdepasse.nom) == 0){
+														printf("mot de passe correct. acces autorise\n");
+															sleep(2);
+															printf("Vous ouvrez l'explorateur de fichier et commencez a chercher un plan du lieu\n\n");
+															sleep(5);
+															printf("Ca y est ! Vous avez trouve un plan de la zone qui vous indique ou est la sortie\n");
+															printf("Voulez vous imprimer le plan ? Oui (1)  Non (2)\n");
+															scanf("%d",&choixPlan);
+																switch (choixPlan) {
+																	case 1:
+																			printf("L'imprimante commence son travail...\n");
+																			sleep (3);
+																			printf("Voulez vous recuperer le plan ? \n (1) Oui (2) Non\n");
+																			scanf("%d", &choixRecup);
+																			switch (choixRecup) {
+																				//objet dans inventaire
+																					case 1:
+																						color (12,0);
+																						printf("Vous obtenez plan des egouts []\n\n");
+																						item planEgout = {"Plan des Egouts", "Un plan complexe qui vous indique la direction a suivre"};
+																						ajouterObjet(&heros, planEgout);
+																						color(15,0);
+																						afficherInventaire(heros);
+																						choixAction=0;
+																						break;
+																					//objet non récupéré
+																					case 2:
+																						printf("\n");
+																						choixAction=0;
+																						break;
+																					}
+																					printf("Vous vous dirigez maintenant vers la sortie\n");
+																					sleep (5);
+																					printf("Vous avez trouve la sortie\n");
+																					choixAction=0;
+																					break;
+																				case 2:
+																					printf("Vous memorisez le plan en le structant pendant quelques minutes\n");
+																					sleep(3);
+																					printf("Vous sortez de la salle et vous vous dirigez vers la sortie\n");
+																					sleep(3);
+																					printf("Une bifurcation se presente devant vous quel chemin voulez vous prendre? Droite (1)  Gauche (2)\n");
+																					scanf("%d",&choixChemin);
+																						if (choixChemin==1) {
+																							printf("Vous decidez d'aller a droite\n");
+																							sleep (5);
+																							printf("Vous avez trouve la sortie ! \n");
+																						} else if (choixChemin==2){
+																							printf("Vous decidez d'aller a gauche\n");
+																							sleep (5);
+																							printf("Vous avez trouve la sortie ! \n");
+																						}
+																						choixAction=0;
+																					break;
+																			}
+											}else {
+												printf("mot de passe incorect. acces refuse\n");
+											}
+								break;
+								//Cas Fouiller Discretement
+							case 2:
+									printf("Vous observez les alentours de la salle et regardez ce qu'il peut y avoir au sol ou sur les etageres \n");
+									sleep (2);
+									printf("Vous trouvez un morceau de papier avec ecrit dessus un mot qui vous parait familier... hosmozine...\n");
+									sleep (2);
+									printf("Vous avez fait trop de bruit ! Le garde vous a repere !\n");
+										//debut combat
+											do{
+													printf("\nQue voulez vous faire ? Donner un coup de poing (1) Donner un coup de pied (2) Couper avec le bout de metal (3)\n");
+													scanf("%d",&choixAttaque);
+														switch(choixAttaque){
+																case 1: //poing
+																	printf("\nVous placez une droite !");
+																		infligerDegats(&heros,&garde2,1);
+																			if(verifierMort(&garde2)==true){
+																				choixAttaque = 0;
+																				break;
+																			}
+																		attaqueGarde(&heros,&garde2);
+																			if(verifierMort(&heros)==true){
+																				choixAttaque = 0;
+																				break;
+																			}
+																	break;
+																case 2: //pied
+																	printf("\nVous jetez votre jambe dans les airs en direction de la tete du garde\n");
+																	infligerDegats(&heros,&garde2,2);
+																		if(verifierMort(&garde2)==true){
+																			choixAttaque = 0;
+																			break;
+																		}
+																	attaqueGarde(&heros,&garde2);
+																		if(verifierMort(&garde2)==true){
+																			choixAttaque = 0;
+																			break;
+																		}
+																	break;
+																case 3: //metal
+																	printf("\nVous serrez le bout de metal entre vos doigts et infligez une coupure a %s\n",garde2.nom);
+																	infligerDegats(&heros,&garde2,3);
+																		if(verifierMort(&garde2)==true){
+																			choixAttaque = 0;
+																			break;
+																		}
+																	attaqueGarde(&heros,&garde2);
+																		if(verifierMort(&garde2)==true){
+																			choixAttaque = 0;
+																			break;
+																		}
+																	break;
+															}
+												}while(choixAttaque != 0);
+												choixAction = -1;
+												//fin combat
+								break;
+							}
+							choixAction = 0;
+
+						break;
+				// Attendre et Sortir
+				case 2:
+	          printf("-T'as entendu ca ? Apparament ils vont augmenter le taux de CTH dans l'hosmozine !\nLes mules vont avoir du mal survivre pouahaha\n\n");
+	          //sleep (4);
+	          printf("-Je trouve pas ca tres drole, ils pourraient etre plus professionels avec les mules,\nc'est pas comme s'ils disposaient des plus grands chirurgiens du monde\n\n");
+	          //sleep(4);
+	          printf("-Rhoo ca va qu'est ce qu'on s'en fiche de savoir si ces gens meurent ou pas,\ndans tous les cas leurs vies etaient foutues autant qu'ils servent a quelque chose !\n\n");
+	          //sleep(4);
+	          printf("-Tu me saoules, je vais aller me griller une cigarrette pour plus t'entendre dire des conneries\n\n");
+	          //sleep(4);
+						printf("-Ca marche moi je retourne en salle info inspecter les cameras de surveillance\n");
+	          //sleep(4);
+						printf("Tu feras gaffe, la sortie B6 est en maintenance, il n'y a que la sortie E4 qui est accessible depuis ici :\n continue tout droit et tu tournes a la deuxieme a gauche\n\n");
+	          //sleep(2);
+	          printf("Vous decidez de suivre le garde jusqu'a la sortie mais la porte se referme devant vous,\n vous ne parvenez pas a vous echaper\n\n");
+	          printf("Vous retournez sur vos pas et trouvez la salle informatique dont parlait l'autre garde\n Celui ci se trouve assis devant les ecrans de surveillance avec un casque audio sur la tete\n\n");
+
+	          printf("Que voulez vous faire ? Assomer le garde (1) Fouiller discretement la salle (2)\n");
+						scanf("%d",&choixAutel);
+							switch (choixAutel) {
 								//Cas Assomer le garde
 								case 1:
 									printf("Vous ramassez une barre en fer sur le sol et assenez un violent coup sur la tete du garde\n\n celui ci vascille et tombe sur le sol\n\n");
